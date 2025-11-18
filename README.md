@@ -43,15 +43,36 @@ El archivo `.env.local` ya contiene tus credenciales de Supabase:
 
 ## 🏃 Ejecutar la aplicación
 
-```bash
-# Asegúrate de tener el venv activado
-source .venv311/bin/activate
+### Desarrollo local
 
-# Ejecutar el servidor
+```bash
+# Opción 1: Script de desarrollo (recomendado para desarrollo)
 python run.py
+
+# Opción 2: Comando directo con uvicorn
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Producción / Testing producción local
+
+```bash
+# Con gunicorn (recomendado para producción)
+gunicorn app.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+
+# Con uvicorn (sin hot reload)
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 El servidor arrancará en: http://localhost:8000
+
+### Deployment en Render/Railway/Heroku
+
+Ver archivo [DEPLOYMENT.md](DEPLOYMENT.md) para instrucciones detalladas.
+
+**Start Command para plataformas cloud:**
+```bash
+gunicorn app.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+```
 
 ## 📚 Documentación de la API
 

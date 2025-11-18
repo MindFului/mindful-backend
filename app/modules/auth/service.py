@@ -11,7 +11,12 @@ class AuthService:
             "id": str(uuid.uuid4()),
             "email": dto.email,
             "password": hashed,
-            "role": dto.role
+            "role": dto.role,
+            "nombre": dto.nombre,
+            "apellido": dto.apellido,
+            "telefono": dto.telefono,
+            "documento_identidad": dto.documento_identidad,
+            "direccion": dto.direccion
         }
         
         try:

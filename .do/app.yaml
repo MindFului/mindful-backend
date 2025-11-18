@@ -1,0 +1,60 @@
+name: mindful-backend
+region: nyc
+
+services:
+  - name: api
+    github:
+      repo: MindFului/mindful-backend
+      branch: main
+      deploy_on_push: true
+    
+    source_dir: /
+    
+    build_command: pip install -r requirements.txt
+    
+    run_command: gunicorn app.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+    
+    http_port: 8000
+    
+    # Recursos del servidor (ajusta según necesidad)
+    instance_count: 1
+    instance_size_slug: basic-xxs  # $5/mes - 512MB RAM, 1 vCPU
+    # Otras opciones: basic-xs ($12), basic-s ($24), basic-m ($48)
+    
+    # Variables de entorno
+    envs:
+      - key: SUPABASE_URL
+        value: https://rjhpthtxbvbctholyiff.supabase.co
+        scope: RUN_TIME
+      
+      - key: SUPABASE_KEY
+        scope: RUN_TIME
+        type: SECRET
+        # Configura el valor en el dashboard de DigitalOcean
+      
+      - key: SECRET_KEY
+        scope: RUN_TIME
+        type: SECRET
+        # Configura el valor en el dashboard de DigitalOcean
+      
+      - key: ALGORITHM
+        value: HS256
+        scope: RUN_TIME
+      
+      - key: MODEL_API_URL
+        value: http://localhost:5000
+        scope: RUN_TIME
+    
+    # Health check para monitoreo
+    health_check:
+      http_path: /
+      initial_delay_seconds: 10
+      period_seconds: 10
+      timeout_seconds: 3
+      success_threshold: 1
+      failure_threshold: 3
+    
+    # Configuración de CORS (opcional)
+    routes:
+      - path: /
+        preserve_path_prefix: true

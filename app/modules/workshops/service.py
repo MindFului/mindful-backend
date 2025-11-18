@@ -1,27 +1,53 @@
 # app/modules/workshops/service.py
 import uuid
 from typing import List
-from app.modules.workshops.schemas import WorkshopCreateDTO
+from app.modules.workshops.schemas import WorkshopCreateDTO, WorkshopUpdateDTO
 from app.core.database import supabase
 
 class WorkshopsService:
     def list(self):
-        """Listar todos los workshops"""
+        """Listar todos los workshops con información del propietario"""
         try:
-            result = supabase.table("workshops").select("*").order("created_at", desc=True).execute()
-            return result.data if result.data else []
+            result = supabase.table("workshops") \
+                .select("*, owner:users(id, email, nombre, apellido)") \
+                .order("created_at", desc=True) \
+                .execute()
+            
+            if result.data:
+                # Aplanar la estructura del owner
+                workshops = []
+                for w in result.data:
+                    workshop = dict(w)
+                    if workshop.get("owner"):
+                        owner = workshop.pop("owner")
+                        workshop["owner_id"] = owner.get("id")
+                        workshop["owner_email"] = owner.get("email")
+                        workshop["owner_nombre"] = owner.get("nombre")
+                        workshop["owner_apellido"] = owner.get("apellido")
+                    workshops.append(workshop)
+                return workshops
+            return []
         except Exception as e:
             print(f"Error listing workshops: {e}")
             return []
 
-    def create(self, dto: WorkshopCreateDTO):
+    def create(self, dto: WorkshopCreateDTO, owner_id: str):
         """Crear un nuevo workshop"""
+        # Convertir schedules a formato JSON
+        schedules_json = [s.dict() if hasattr(s, 'dict') else s for s in (dto.schedules or [])]
+        
         workshop_data = {
             "id": str(uuid.uuid4()),
             "title": dto.title,
             "description": dto.description,
+            "image_url": dto.image_url,
             "tags": dto.tags or [],
-            "active": dto.active
+            "active": dto.active,
+            "ciudad": dto.ciudad,
+            "direccion": dto.direccion,
+            "referencia": dto.referencia,
+            "schedules": schedules_json,
+            "owner_id": owner_id
         }
         
         try:
@@ -36,19 +62,59 @@ class WorkshopsService:
     def find_by_tags(self, tags: List[str]):
         """Buscar workshops por tags (activos)"""
         try:
-            # Supabase usa operador @> para arrays (contains)
-            result = supabase.table("workshops").select("*").eq("active", True).execute()
+            result = supabase.table("workshops") \
+                .select("*, owner:users(id, email, nombre, apellido)") \
+                .eq("active", True) \
+                .execute()
             
-            # Filtrar por tags en Python (alternativa: usar RPC con función SQL personalizada)
+            # Filtrar por tags en Python
             if result.data:
                 filtered = [
                     w for w in result.data
                     if w.get("tags") and any(t in w.get("tags", []) for t in tags)
                 ]
-                return filtered
+                
+                # Aplanar estructura del owner
+                workshops = []
+                for w in filtered:
+                    workshop = dict(w)
+                    if workshop.get("owner"):
+                        owner = workshop.pop("owner")
+                        workshop["owner_id"] = owner.get("id")
+                        workshop["owner_email"] = owner.get("email")
+                        workshop["owner_nombre"] = owner.get("nombre")
+                        workshop["owner_apellido"] = owner.get("apellido")
+                    workshops.append(workshop)
+                return workshops
             return []
         except Exception as e:
             print(f"Error finding workshops by tags: {e}")
+            return []
+
+    def find_by_city(self, ciudad: str):
+        """Buscar workshops por ciudad"""
+        try:
+            result = supabase.table("workshops") \
+                .select("*, owner:users(id, email, nombre, apellido)") \
+                .eq("ciudad", ciudad) \
+                .eq("active", True) \
+                .execute()
+            
+            if result.data:
+                workshops = []
+                for w in result.data:
+                    workshop = dict(w)
+                    if workshop.get("owner"):
+                        owner = workshop.pop("owner")
+                        workshop["owner_id"] = owner.get("id")
+                        workshop["owner_email"] = owner.get("email")
+                        workshop["owner_nombre"] = owner.get("nombre")
+                        workshop["owner_apellido"] = owner.get("apellido")
+                    workshops.append(workshop)
+                return workshops
+            return []
+        except Exception as e:
+            print(f"Error finding workshops by city: {e}")
             return []
 
     def patch(self, wid: str, data: dict):
@@ -57,6 +123,14 @@ class WorkshopsService:
             # Remover campos que no se deben actualizar
             data.pop("id", None)
             data.pop("created_at", None)
+            data.pop("owner_id", None)
+            
+            # Convertir schedules si existe
+            if "schedules" in data and data["schedules"]:
+                data["schedules"] = [
+                    s.dict() if hasattr(s, 'dict') else s 
+                    for s in data["schedules"]
+                ]
             
             result = supabase.table("workshops").update(data).eq("id", wid).execute()
             if result.data and len(result.data) > 0:

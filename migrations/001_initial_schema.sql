@@ -1,32 +1,51 @@
 -- Script de migración para crear las tablas en Supabase
 -- Ejecuta este script en el SQL Editor de Supabase
 
--- Tabla de usuarios
+-- Tabla de usuarios (con campos de perfil)
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) DEFAULT 'student',
+    role VARCHAR(50) DEFAULT 'student', -- 'student', 'ownerWorkshop', 'admin'
+    -- Campos de perfil (para student y ownerWorkshop)
+    nombre VARCHAR(100),
+    apellido VARCHAR(100),
+    telefono VARCHAR(20),
+    documento_identidad VARCHAR(50),
+    direccion TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Índice para búsqueda por email
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 
--- Tabla de workshops
+-- Tabla de workshops (con ubicación, horarios e imagen)
 CREATE TABLE IF NOT EXISTS workshops (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
     description TEXT,
+    image_url TEXT,
     tags TEXT[], -- Array de strings para tags
     active BOOLEAN DEFAULT TRUE,
+    -- Ubicación
+    ciudad VARCHAR(100) NOT NULL,
+    direccion TEXT NOT NULL,
+    referencia TEXT,
+    -- Horarios (almacenado como JSONB array)
+    schedules JSONB DEFAULT '[]'::jsonb,
+    -- Relación con usuario propietario
+    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Índice para búsqueda por tags
+-- Índices para búsqueda por tags, ciudad y propietario
 CREATE INDEX IF NOT EXISTS idx_workshops_tags ON workshops USING GIN(tags);
+CREATE INDEX IF NOT EXISTS idx_workshops_ciudad ON workshops(ciudad);
+CREATE INDEX IF NOT EXISTS idx_workshops_owner_id ON workshops(owner_id);
+CREATE INDEX IF NOT EXISTS idx_workshops_active ON workshops(active);
 
 -- Tabla de registros de emociones (tracking)
 CREATE TABLE IF NOT EXISTS emotion_records (

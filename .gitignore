@@ -20,6 +20,10 @@ venv.bak/
 .env.local
 .env.*.local
 
+# Pero permitir archivos de ejemplo y configuración de despliegue
+!.env.example
+!.do/app.yaml
+
 # IDEs
 .idea/
 .vscode/
