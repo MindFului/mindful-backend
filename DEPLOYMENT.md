@@ -2,6 +2,17 @@
 
 Este documento contiene las instrucciones para hacer deploy del backend en diferentes plataformas.
 
+## ⚠️ IMPORTANTE: Versión de Python
+
+**Este proyecto requiere Python 3.11** (no 3.12 ni 3.13) por compatibilidad con FastAPI 0.95.2 y Pydantic 1.10.12.
+
+**Archivo `runtime.txt` incluido:**
+```
+python-3.11.10
+```
+
+Este archivo asegura que todas las plataformas usen la versión correcta de Python.
+
 ## 🚀 Comandos de deployment
 
 ### Para Render / Railway / Heroku

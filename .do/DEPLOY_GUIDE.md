@@ -1,5 +1,11 @@
 # Guía Rápida: Deploy en DigitalOcean
 
+## ⚠️ IMPORTANTE: Python 3.11 requerido
+
+Este proyecto **DEBE usar Python 3.11** (no 3.12 ni 3.13) por compatibilidad con FastAPI 0.95.2 y Pydantic 1.10.12.
+
+El archivo `runtime.txt` asegura que se use Python 3.11.10 en el deploy.
+
 ## 📦 Pasos para hacer deploy
 
 ### Opción 1: Usando la interfaz web (más fácil)
@@ -81,6 +87,12 @@ Una vez deployado, verifica:
 3. **Probar un endpoint:** `GET https://tu-app.ondigitalocean.app/workshops/`
 
 ## 🔧 Troubleshooting
+
+**Error: "TypeError: ForwardRef._evaluate() missing 1 required keyword-only argument"**
+- ⚠️ **Este es el error más común**: la plataforma está usando Python 3.12 o 3.13
+- ✅ **Solución**: Asegúrate de que el archivo `runtime.txt` existe con el contenido `python-3.11.10`
+- Haz commit y push del archivo `runtime.txt`
+- Fuerza un nuevo deploy
 
 **Error: "Module not found"**
 - Verifica que `requirements.txt` esté actualizado

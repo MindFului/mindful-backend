@@ -10,6 +10,8 @@ services:
     
     source_dir: /
     
+    # IMPORTANT: Python 3.11 required (not 3.12 or 3.13)
+    # DigitalOcean reads from runtime.txt automatically
     build_command: pip install -r requirements.txt
     
     run_command: gunicorn app.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
