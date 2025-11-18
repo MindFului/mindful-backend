@@ -1,2 +1,2 @@
-SECRET_KEY = "dev_jwt_secret"
-ALGORITHM = "HS256"
+# Importar desde config centralizado
+from app.core.config import SECRET_KEY, ALGORITHM
