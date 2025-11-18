@@ -31,6 +31,29 @@ class WorkshopsService:
             print(f"Error listing workshops: {e}")
             return []
 
+    def find_by_id(self, wid: str):
+        """Obtener un workshop por su ID con información del propietario"""
+        try:
+            result = supabase.table("workshops") \
+                .select("*, owner:users(id, email, nombre, apellido)") \
+                .eq("id", wid) \
+                .single() \
+                .execute()
+            
+            if result.data:
+                workshop = dict(result.data)
+                if workshop.get("owner"):
+                    owner = workshop.pop("owner")
+                    workshop["owner_id"] = owner.get("id")
+                    workshop["owner_email"] = owner.get("email")
+                    workshop["owner_nombre"] = owner.get("nombre")
+                    workshop["owner_apellido"] = owner.get("apellido")
+                return workshop
+            return None
+        except Exception as e:
+            print(f"Error finding workshop by id: {e}")
+            return None
+
     def create(self, dto: WorkshopCreateDTO, owner_id: str):
         """Crear un nuevo workshop"""
         # Convertir schedules a formato JSON

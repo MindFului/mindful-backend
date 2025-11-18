@@ -10,6 +10,13 @@ router = APIRouter()
 def all_workshops():
     return {"workshops": workshops_service.list()}
 
+@router.get("/{id}")
+def get_workshop_by_id(id: str):
+    workshop = workshops_service.find_by_id(id)
+    if not workshop:
+        raise HTTPException(status_code=404, detail="Workshop not found")
+    return workshop
+
 @router.get("/by-city/{ciudad}")
 def workshops_by_city(ciudad: str):
     return {"workshops": workshops_service.find_by_city(ciudad)}
