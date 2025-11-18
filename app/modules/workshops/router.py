@@ -1,22 +1,10 @@
 # app/modules/workshops/router.py
-from fastapi import APIRouter, HTTPException, Depends, Header
+from fastapi import APIRouter, HTTPException
 from app.modules.workshops.service import workshops_service
 from app.modules.workshops.schemas import WorkshopCreateDTO, WorkshopUpdateDTO
-from app.modules.auth.service import auth_service
-from typing import Optional, List
+from typing import List
 
 router = APIRouter()
-
-def get_current_user_id(authorization: Optional[str] = Header(None)):
-    """Extraer user_id del token JWT (si existe)"""
-    if not authorization or not authorization.startswith("Bearer "):
-        return None
-    
-    token = authorization.replace("Bearer ", "")
-    payload = auth_service.decode(token)
-    if payload:
-        return payload.get("sub")
-    return None
 
 @router.get("/")
 def all_workshops():
@@ -31,11 +19,8 @@ def workshops_by_tags(tags: List[str]):
     return {"workshops": workshops_service.find_by_tags(tags)}
 
 @router.post("/")
-def create_workshop(body: WorkshopCreateDTO, user_id: str = Depends(get_current_user_id)):
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Authentication required")
-    
-    workshop = workshops_service.create(body, owner_id=user_id)
+def create_workshop(body: WorkshopCreateDTO):
+    workshop = workshops_service.create(body, owner_id=None)
     if not workshop:
         raise HTTPException(status_code=500, detail="Error creating workshop")
     return workshop

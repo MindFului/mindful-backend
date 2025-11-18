@@ -49,7 +49,7 @@ class WorkshopResponse(BaseModel):
     direccion: str
     referencia: Optional[str]
     schedules: Optional[List[dict]]
-    owner_id: str
+    owner_id: Optional[str] = None
     # Información del propietario (joined)
     owner_email: Optional[str] = None
     owner_nombre: Optional[str] = None
