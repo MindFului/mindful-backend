@@ -1,14 +1,16 @@
 # app/modules/workshops/router.py
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from app.modules.workshops.service import workshops_service
-from app.modules.workshops.schemas import WorkshopCreateDTO, WorkshopUpdateDTO
-from typing import List
+from app.modules.workshops.schemas import WorkshopCreateDTO, WorkshopUpdateDTO, WorkshopStatus
+from typing import List, Optional
 
 router = APIRouter()
 
 @router.get("/")
-def all_workshops():
-    return {"workshops": workshops_service.list()}
+def all_workshops(status: Optional[WorkshopStatus] = Query(None, description="Filtrar por status: active, inactive, pending")):
+    # Convertir el enum a string si existe
+    status_str = status.value if status else None
+    return {"workshops": workshops_service.list(status=status_str)}
 
 @router.get("/{id}")
 def get_workshop_by_id(id: str):

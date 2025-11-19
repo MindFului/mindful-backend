@@ -224,8 +224,31 @@ Actualiza información de un usuario.
 
 ## 🎓 Talleres/Workshops (`/workshops`)
 
-### `GET /workshops/`
+### `GET /workshops/?status={active|inactive|pending}`
 Lista todos los talleres disponibles (incluye información del propietario).
+
+**Query Parameters:**
+- `status` (string, opcional): Filtra por estado. Valores posibles:
+  - `active` - Talleres activos
+  - `inactive` - Talleres inactivos
+  - `pending` - Talleres pendientes de aprobación
+  - Sin parámetro: Trae todos los talleres
+
+**Ejemplos:**
+
+```bash
+# Todos los talleres
+GET /workshops/
+
+# Solo talleres activos
+GET /workshops/?status=active
+
+# Solo talleres pendientes
+GET /workshops/?status=pending
+
+# Solo talleres inactivos
+GET /workshops/?status=inactive
+```
 
 **Response:**
 ```json
@@ -237,7 +260,7 @@ Lista todos los talleres disponibles (incluye información del propietario).
       "description": "Introducción a técnicas de mindfulness",
       "image_url": "https://example.com/image.jpg",
       "tags": ["mindfulness", "beginner", "meditation"],
-      "active": true,
+      "status": "active",
       "ciudad": "Bogotá",
       "direccion": "Carrera 7 #72-35",
       "referencia": "Cerca al Parque Nacional",
@@ -315,13 +338,8 @@ GET /workshops/by-tags?tags=mindfulness&tags=beginner
 
 ---
 
-### `POST /workshops/` 🔒
-Crea un nuevo taller. **Requiere autenticación.**
-
-**Headers:**
-```
-Authorization: Bearer <token>
-```
+### `POST /workshops/`
+Crea un nuevo taller. **No requiere autenticación.**
 
 **Request Body:**
 ```json
@@ -330,7 +348,7 @@ Authorization: Bearer <token>
   "description": "Aprende técnicas de respiración para reducir el estrés",
   "image_url": "https://example.com/workshop-image.jpg",
   "tags": ["breathing", "stress-relief", "intermediate"],
-  "active": true,
+  "status": "pending",
   "ciudad": "Medellín",
   "direccion": "Calle 10 #50-20",
   "referencia": "Edificio Plaza Mayor, piso 3",
@@ -358,7 +376,7 @@ Authorization: Bearer <token>
 - `description` (string): Descripción del taller
 - `image_url` (string): URL de la imagen
 - `tags` (array): Lista de etiquetas
-- `active` (boolean): Si el taller está activo (default: true)
+- `status` (string): Estado del taller - Valores: `"active"`, `"inactive"`, `"pending"` (default: `"pending"`)
 - `referencia` (string): Punto de referencia
 - `schedules` (array): Horarios del taller
 
@@ -367,16 +385,10 @@ Authorization: Bearer <token>
 {
   "id": "uuid-generado",
   "title": "Taller de Respiración Consciente",
-  "owner_id": "uuid-del-usuario-autenticado",
+  "owner_id": null,
+  "status": "pending",
   "ciudad": "Medellín",
   "created_at": "2025-11-18T16:00:00"
-}
-```
-
-**Error 401:**
-```json
-{
-  "detail": "Authentication required"
 }
 ```
 
@@ -393,7 +405,7 @@ Actualiza un taller existente.
 {
   "title": "Nuevo título",
   "description": "Nueva descripción",
-  "active": false,
+  "status": "active",
   "schedules": [
     {
       "dia": "Viernes",
@@ -410,7 +422,7 @@ Actualiza un taller existente.
   "id": "uuid",
   "title": "Nuevo título",
   "description": "Nueva descripción",
-  "active": false,
+  "status": "active",
   "updated_at": "2025-11-18T17:00:00"
 }
 ```

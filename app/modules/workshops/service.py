@@ -5,13 +5,20 @@ from app.modules.workshops.schemas import WorkshopCreateDTO, WorkshopUpdateDTO
 from app.core.database import supabase
 
 class WorkshopsService:
-    def list(self):
-        """Listar todos los workshops con información del propietario"""
+    def list(self, status=None):
+        """Listar todos los workshops con información del propietario
+        Args:
+            status (str, optional): Filtrar por status: 'active', 'inactive', 'pending'. Si es None, trae todos.
+        """
         try:
-            result = supabase.table("workshops") \
-                .select("*, owner:users(id, email, nombre, apellido)") \
-                .order("created_at", desc=True) \
-                .execute()
+            query = supabase.table("workshops") \
+                .select("*, owner:users(id, email, nombre, apellido)")
+            
+            # Aplicar filtro solo si se proporciona el parámetro
+            if status is not None:
+                query = query.eq("status", status)
+            
+            result = query.order("created_at", desc=True).execute()
             
             if result.data:
                 # Aplanar la estructura del owner
@@ -65,7 +72,7 @@ class WorkshopsService:
             "description": dto.description,
             "image_url": dto.image_url,
             "tags": dto.tags or [],
-            "active": dto.active,
+            "status": dto.status.value if dto.status else "pending",
             "ciudad": dto.ciudad,
             "direccion": dto.direccion,
             "referencia": dto.referencia,
@@ -83,11 +90,11 @@ class WorkshopsService:
             return None
 
     def find_by_tags(self, tags: List[str]):
-        """Buscar workshops por tags (activos)"""
+        """Buscar workshops por tags (solo activos)"""
         try:
             result = supabase.table("workshops") \
                 .select("*, owner:users(id, email, nombre, apellido)") \
-                .eq("active", True) \
+                .eq("status", "active") \
                 .execute()
             
             # Filtrar por tags en Python
@@ -115,12 +122,12 @@ class WorkshopsService:
             return []
 
     def find_by_city(self, ciudad: str):
-        """Buscar workshops por ciudad"""
+        """Buscar workshops por ciudad (solo activos)"""
         try:
             result = supabase.table("workshops") \
                 .select("*, owner:users(id, email, nombre, apellido)") \
                 .eq("ciudad", ciudad) \
-                .eq("active", True) \
+                .eq("status", "active") \
                 .execute()
             
             if result.data:
@@ -147,6 +154,10 @@ class WorkshopsService:
             data.pop("id", None)
             data.pop("created_at", None)
             data.pop("owner_id", None)
+            
+            # Convertir status a string si es un enum
+            if "status" in data and hasattr(data["status"], "value"):
+                data["status"] = data["status"].value
             
             # Convertir schedules si existe
             if "schedules" in data and data["schedules"]:

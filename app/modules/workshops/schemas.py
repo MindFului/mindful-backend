@@ -1,6 +1,12 @@
 # app/modules/workshops/schemas.py
 from pydantic import BaseModel
 from typing import List, Optional
+from enum import Enum
+
+class WorkshopStatus(str, Enum):
+    active = "active"
+    inactive = "inactive"
+    pending = "pending"
 
 class UbicacionDTO(BaseModel):
     ciudad: str
@@ -17,7 +23,7 @@ class WorkshopCreateDTO(BaseModel):
     description: Optional[str] = None
     image_url: Optional[str] = None
     tags: Optional[List[str]] = []
-    active: Optional[bool] = True
+    status: Optional[WorkshopStatus] = WorkshopStatus.pending
     # Ubicación
     ciudad: str
     direccion: str
@@ -32,7 +38,7 @@ class WorkshopUpdateDTO(BaseModel):
     description: Optional[str] = None
     image_url: Optional[str] = None
     tags: Optional[List[str]] = None
-    active: Optional[bool] = None
+    status: Optional[WorkshopStatus] = None
     ciudad: Optional[str] = None
     direccion: Optional[str] = None
     referencia: Optional[str] = None
@@ -44,7 +50,7 @@ class WorkshopResponse(BaseModel):
     description: Optional[str]
     image_url: Optional[str]
     tags: Optional[List[str]]
-    active: bool
+    status: WorkshopStatus
     ciudad: str
     direccion: str
     referencia: Optional[str]
